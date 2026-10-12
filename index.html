@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The ViéCOCO | PURE NATURE - PURE YOU</title>
+  <meta name="description" content="The ViéCOCO - Mỹ phẩm dừa thiên nhiên Bến Tre, thủ công, tinh tế và an toàn cho da." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Alex+Brush&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cream: '#F7E6CA',
+            ivory: '#FFFCF7',
+            cocoa: '#4A2E1B',
+            mocha: '#7A5230',
+            sage: '#8C9A7B'
+          },
+          fontFamily: {
+            serif: ['"Cormorant Garamond"', 'serif'],
+            sans: ['Inter', 'sans-serif'],
+            signature: ['"Alex Brush"', 'cursive']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { background: #F7E6CA; color: #4A2E1B; }
+    .hero-image {
+      background-image:
+        linear-gradient(rgba(74,46,27,0.18), rgba(74,46,27,0.32)),
+        url('https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=1200&q=80');
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased">
+  <div id="app"></div>
+
+  <script>
+    const ALLOWED_ADMINS = ['gamingrinno@gmail.com', 'nguyenlethuyduong1801@gmail.com'];
+
+    const initialProducts = [
+      {
+        id: 1,
+        name: 'Son dưỡng dừa ẩm mịn',
+        enName: 'Coconut Hydrating Lip Balm',
+        price: 79000,
+        originalPrice: 95000,
+        volume: '10g',
+        packaging: 'Hũ thủy tinh mờ nắp gỗ',
+        tag: 'Bán chạy',
+        rating: 4.9,
+        reviewCount: 142,
+        shortDesc: 'Dưỡng môi ẩm mượt 24h, làm mờ rãnh môi và hồng môi tự nhiên từ dầu dừa tinh khiết Bến Tre.',
+        description: 'Chắt lọc từ những giọt dầu dừa Bến Tre ép lạnh nguyên chất, kết hợp cùng sáp ong và vitamin E giúp dưỡng môi ẩm mượt hàng ngày.',
+        ingredients: ['Dầu dừa Bến Tre ép lạnh', 'Sáp ong', 'Bơ hạt mỡ', 'Vitamin E'],
+        image: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=800&q=80'
+      },
+      {
+        id: 2,
+        name: 'Tẩy tế bào chết môi dừa & đường mía',
+        enName: 'Coconut Sugar Lip Scrub',
+        price: 129000,
+        originalPrice: 149000,
+        volume: '20g',
+        packaging: 'Hũ thủy tinh cao cấp',
+        tag: 'Thuần chay',
+        rating: 4.95,
+        reviewCount: 98,
+        shortDesc: 'Lấy đi tế bào chết nhẹ nhàng với tinh thể đường mía vàng và dầu dừa hữu cơ thơm ngát.',
+        description: 'Bí quyết cho đôi môi mịn màng, sần sùi được làm sạch nhẹ nhàng nhưng vẫn giữ độ ẩm và mềm mịn.',
+        ingredients: ['Đường mía nâu', 'Dầu dừa ép lạnh', 'Jojoba', 'Vani Madagascar'],
+        image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80'
+      },
+      {
+        id: 3,
+        name: 'Tẩy tế bào chết body dừa & bã cà phê',
+        enName: 'Organic Coconut Body Polish',
+        price: 159000,
+        originalPrice: 189000,
+        volume: '200g',
+        packaging: 'Hũ Spa sang trọng',
+        tag: 'Spa',
+        rating: 5.0,
+        reviewCount: 186,
+        shortDesc: 'Cà phê Robusta Đắk Lắk rang mộc quyện cùng dầu dừa dưỡng da mướt mịn, sáng khỏe toàn thân.',
+        description: 'Sự hòa quyện tuyệt đỉnh giữa bã cà phê và dầu dừa, giúp da mềm mịn và loại bỏ tế bào chết hiệu quả.',
+        ingredients: ['Bã cà phê Robusta', 'Dầu dừa ép lạnh', 'Dầu hạnh nhân', 'Tinh dầu vỏ cam'],
+        image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=800&q=80'
+      }
+    ];
+
+    const formatCurrency = (n) => new Intl.NumberFormat('vi-VN').format(n) + ' ₫';
+
+    function App() {
+      const [products, setProducts] = React.useState(() => {
+        const saved = localStorage.getItem('viecoco-products');
+        return saved ? JSON.parse(saved) : initialProducts;
+      });
+
+      const [cart, setCart] = React.useState(() => {
+        const saved = localStorage.getItem('viecoco-cart');
+        return saved ? JSON.parse(saved) : [];
+      });
+
+      const [adminEmail, setAdminEmail] = React.useState(localStorage.getItem('viecoco-admin') || '');
+      const [isAdminOpen, setIsAdminOpen] = React.useState(false);
+      const [isCartOpen, setIsCartOpen] = React.useState(false);
+      const [isEditMode, setIsEditMode] = React.useState(false);
+      const [selectedProduct, setSelectedProduct] = React.useState(null);
+      const [editingProduct, setEditingProduct] = React.useState(null);
+      const [toast, setToast] = React.useState('');
+      const [menuOpen, setMenuOpen] = React.useState(false);
+
+      React.useEffect(() => localStorage.setItem('viecoco-products', JSON.stringify(products)), [products]);
+      React.useEffect(() => localStorage.setItem('viecoco-cart', JSON.stringify(cart)), [cart]);
+      React.useEffect(() => {
+        if (adminEmail) localStorage.setItem('viecoco-admin', adminEmail);
+        else localStorage.removeItem('viecoco-admin');
+      }, [adminEmail]);
+
+      React.useEffect(() => {
+        if (!toast) return;
+        const timer = setTimeout(() => setToast(''), 2200);
+        return () => clearTimeout(timer);
+      }, [toast]);
+
+      const totalCart = cart.reduce((sum, item) => sum + item.qty, 0);
+
+      const addToCart = (product) => {
+        const exists = cart.find(item => item.product.id === product.id);
+        if (exists) {
+          setCart(cart.map(item => item.product.id === product.id ? { ...item, qty: item.qty + 1 } : item));
+        } else {
+          setCart([...cart, { product, qty: 1 }]);
+        }
+        setToast(`Đã thêm "${product.name}" vào giỏ hàng`);
+      };
+
+      const updateQty = (id, qty) => {
+        if (qty <= 0) {
+          setCart(cart.filter(item => item.product.id !== id));
+          return;
+        }
+        setCart(cart.map(item => item.product.id === id ? { ...item, qty } : item));
+      };
+
+      const adminLogin = (e) => {
+        e.preventDefault();
+        const form = new FormData(e.target);
+        const email = String(form.get('email') || '').trim().toLowerCase();
+        const password = String(form.get('password') || '').trim();
+
+        if (!ALLOWED_ADMINS.includes(email)) {
+          alert('Email không thuộc quyền quản trị!');
+          return;
+        }
+        if (!password) {
+          alert('Vui lòng nhập mật khẩu.');
+          return;
+        }
+
+        setAdminEmail(email);
+        setIsAdminOpen(false);
+        setToast('Đăng nhập quản trị thành công');
+      };
+
+      const logoutAdmin = () => {
+        setAdminEmail('');
+        setToast('Đã đăng xuất');
+      };
+
+      const saveProduct = (product) => {
+        const exists = products.some(p => p.id === product.id);
+        if (exists) {
+          setProducts(products.map(p => p.id === product.id ? product : p));
+          setToast('Cập nhật sản phẩm thành công');
+        } else {
+          setProducts([product, ...products]);
+          setToast('Thêm sản phẩm mới thành công');
+        }
+        setEditingProduct(null);
+      };
+
+      const deleteProduct = (id) => {
+        const p = products.find(item => item.id === id);
+        if (!p) return;
+        if (confirm(`Bạn có chắc muốn xóa "${p.name}"?`)) {
+          setProducts(products.filter(item => item.id !== id));
+          setCart(cart.filter(item => item.product.id !== id));
+          setToast('Đã xóa sản phẩm');
+        }
+      };
+
+      const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.qty, 0);
+      const discount = subtotal > 0 ? Math.round(subtotal * 0.1) : 0;
+      const shipping = subtotal === 0 || subtotal > 200000 ? 0 : 25000;
+      const total = subtotal - discount + shipping;
+
+      const navItems = [
+        { id: 'hero', label: 'Trang chủ' },
+        { id: 'about', label: 'Giới thiệu' },
+        { id: 'products', label: 'Sản phẩm' },
+        { id: 'contact', label: 'Liên hệ' }
+      ];
+
+      return (
+        <div>
+          {adminEmail && (
+            <div className="bg-[#4A2E1B] text-[#F7E6CA] text-xs px-4 py-2 flex flex-col md:flex-row md:items-center md:justify-between">
+              <div className="flex items-center gap-2">
+                <span>👑</span>
+                <span>Chế độ quản trị viên: <strong>{adminEmail}</strong></span>
+              </div>
+              <div className="flex gap-2 mt-2 md:mt-0">
+                <button
+                  onClick={() => setEditingProduct({
+                    id: Date.now(),
+                    name: '',
+                    enName: '',
+                    price: 90000,
+                    originalPrice: 120000,
+                    volume: '10g',
+                    packaging: 'Hũ thủy tinh',
+                    tag: 'Mới',
+                    shortDesc: '',
+                    description: '',
+                    ingredients: ['Dầu dừa', 'Dưỡng chất thiên nhiên'],
+                    image: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=800&q=80'
+                  })}
+                  className="px-3 py-1.5 rounded-lg bg-[#F7E6CA] text-[#4A2E1B] font-semibold"
+                >
+                  + Thêm sản phẩm
+                </button>
+                <button onClick={logoutAdmin} className="text-red-300">Đăng xuất</button>
+              </div>
+            </div>
+          )}
+
+          <header className="sticky top-0 z-40 bg-[#F7E6CA]/90 backdrop-blur border-b border-[#4A2E1B]/10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-20">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-white border border-[#4A2E1B]/20 flex items-center justify-center font-serif font-bold text-[#4A2E1B] text-xl">V</div>
+                <div>
+                  <div className="font-serif text-2xl font-bold">The ViéCOCO</div>
+                  <div className="text-[10px] uppercase tracking-[0.3em] text-[#7A5230]">Pure Nature - Pure You</div>
+                </div>
+              </div>
+
+              <nav className="hidden md:flex gap-8 text-sm font-medium">
+                {navItems.map(item => (
+                  <a key={item.id} href={'#' + item.id} className="hover:text-[#7A5230]">{item.label}</a>
+                ))}
+              </nav>
+
+              <div className="hidden md:flex items-center gap-3">
+                <button
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  className={`px-4 py-2 rounded-full text-xs font-bold ${isEditMode ? 'bg-[#7A5230] text-white' : 'bg-white text-[#4A2E1B]'}`}
+                >
+                  {isEditMode ? 'Bật chỉnh giá' : 'Chỉnh giá'}
+                </button>
+
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="relative bg-[#4A2E1B] text-[#FFFCF7] px-4 py-2.5 rounded-full text-xs font-semibold"
+                >
+                  Giỏ hàng
+                  <span className="absolute -top-2 -right-2 bg-[#8C9A7B] rounded-full w-5 h-5 text-[10px] flex items-center justify-center">
+                    {totalCart}
+                  </span>
+                </button>
+
+                {!adminEmail && (
+                  <button onClick={() => setIsAdminOpen(true)} className="border border-[#4A2E1B]/30 px-4 py-2.5 rounded-full text-xs font-semibold">
+                    Admin
+                  </button>
+                )}
+              </div>
+
+              <button className="md:hidden p-2 rounded-lg bg-white" onClick={() => setMenuOpen(!menuOpen)}>
+                ☰
+              </button>
+            </div>
+
+            {menuOpen && (
+              <div className="md:hidden bg-[#F7E6CA] border-t border-[#4A2E1B]/10 px-4 py-4 space-y-3">
+                {navItems.map(item => (
+                  <a key={item.id} href={'#' + item.id} onClick={() => setMenuOpen(false)} className="block py-2 text-sm">{item.label}</a>
+                ))}
+                <div className="flex gap-3 pt-2">
+                  <button onClick={() => setIsEditMode(!isEditMode)} className="flex-1 px-3 py-2 rounded-full bg-[#7A5230] text-white text-xs">Chỉnh giá</button>
+                  <button onClick={() => setIsCartOpen(true)} className="flex-1 px-3 py-2 rounded-full bg-[#4A2E1B] text-white text-xs">Giỏ hàng</button>
+                </div>
+              </div>
+            )}
+          </header>
+
+          <main>
+            <section id="hero" className="max-w-7xl mx-auto px-4 sm:px-6 py-12 md:py-20">
+              <div className="grid md:grid-cols-2 gap-10 items-center">
+                <div className="space-y-6">
+                  <div className="inline-flex items-center gap-2 rounded-full bg-white/70 px-3 py-2 text-[11px] uppercase tracking-[0.2em] font-bold text-[#7A5230] border border-[#4A2E1B]/10">
+                    <span className="w-2 h-2 rounded-full bg-[#8C9A7B]"></span>
+                    Mỹ phẩm dừa thủ công cao cấp
+                  </div>
+
+                  <h1 className="font-serif text-5xl md:text-7xl leading-none">
+                    The ViéCOCO
+                  </h1>
+
+                  <p className="font-serif text-2xl tracking-[0.18em] text-[#7A5230] uppercase">
+                    PURE NATURE - PURE YOU
+                  </p>
+
+                  <p className="text-base text-[#4A2E1B]/80 max-w-xl">
+                    Khởi nguồn từ những rặng dừa Bến Tre trĩu quả, The ViéCOCO mang đến mỹ phẩm dừa thiên nhiên, 100% thơm từ tự nhiên, dịu lành cho làn da và đôi môi của bạn.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <a href="#products" className="bg-[#4A2E1B] text-[#FFFCF7] px-7 py-4 rounded-full text-sm font-bold uppercase tracking-wider">
+                      Khám phá sản phẩm
+                    </a>
+                    <button onClick={() => setIsCartOpen(true)} className="bg-white border border-[#4A2E1B]/15 px-7 py-4 rounded-full text-sm font-semibold">
+                      Xem giỏ hàng
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 max-w-md pt-4">
+                    <div>
+                      <div className="font-serif text-2xl font-bold">100%</div>
+                      <div className="text-[10px] uppercase tracking-widest text-[#7A5230]">Thuần thực vật</div>
+                    </div>
+                    <div>
+                      <div className="font-serif text-2xl font-bold">Ép lạnh</div>
+                      <div className="text-[10px] uppercase tracking-widest text-[#7A5230]">Giữ dưỡng chất</div>
+                    </div>
+                    <div>
+                      <div className="font-serif text-2xl font-bold">0%</div>
+                      <div className="text-[10px] uppercase tracking-widest text-[#7A5230]">Paraben</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="hero-image relative h-[500px] rounded-[32px] border border-[#4A2E1B]/10 shadow-[0_20px_60px_rgba(74,46,27,0.18)] overflow-hidden">
+                  <div className="absolute top-5 left-5 bg-white/90 text-[#4A2E1B] px-3 py-2 rounded-full text-xs font-semibold">
+                    Organic Edition
+                  </div>
+                  <div className="absolute bottom-6 left-6 right-6">
+                    <div className="bg-white/10 backdrop-blur-md border border-white/30 p-4 rounded-2xl text-white">
+                      <div className="font-serif text-2xl">Dừa Bến Tre Tuyển Chọn</div>
+                      <div className="text-sm text-[#F7E6CA]">Thu hoạch đúng thời vụ • Ép lạnh tinh khiết</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="about" className="py-20 bg-[#FFFCF7]/60">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                <div className="text-center max-w-3xl mx-auto mb-14">
+                  <div className="inline-block px-3 py-2 rounded-full bg-white border border-[#4A2E1B]/10 text-[10px] uppercase tracking-[0.25em] text-[#7A5230] font-bold">
+                    Câu chuyện thương hiệu
+                  </div>
+                  <h2 className="font-serif text-4xl md:text-5xl mt-6">Hồn Dừa Bến Tre — Nét đẹp tự nhiên thuần khiết</h2>
+                  <div className="mt-4 w-20 h-1 bg-[#4A2E1B]/30 mx-auto"></div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-10 items-center">
+                  <div className="overflow-hidden rounded-[28px] shadow-xl border border-[#4A2E1B]/10">
+                    <img
+                      src="https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1000&q=80"
+                      alt="Dầu dừa Bến Tre"
+                      className="w-full h-[420px] object-cover"
+                    />
+                  </div>
+
+                  <div className="space-y-6">
+                    <h3 className="font-serif text-3xl">Nuôi dưỡng thanh xuân bằng sự dịu lành của thiên nhiên</h3>
+                    <p className="text-[#4A2E1B]/80">
+                      Mỗi trái dừa được tuyển chọn từ những cây dừa già trên 20 năm tuổi tại Bến Tre. The ViéCOCO mang đến nguyên liệu 100% thực vật, ép lạnh và được làm thủ công với tỉ mỉ.
+                    </p>
+                    <p className="text-[#4A2E1B]/80">
+                      Dầu dừa thu được trong suốt như pha lê, thơm nhẹ ngọt dịu, thẩm thấu nhanh vào da và môi mà không gây bết dính.
+                    </p>
+
+                    <div className="grid md:grid-cols-3 gap-4 pt-4">
+                      {[
+                        ['🌱', '100% Thuần chay'],
+                        ['🐇', 'Không thử nghiệm thú'],
+                        ['✨', 'Thủ công tỉ mỉ']
+                      ].map(([icon, text]) => (
+                        <div key={text} className="bg-white rounded-2xl p-5 text-center border border-[#4A2E1B]/10">
+                          <div className="text-2xl">{icon}</div>
+                          <div className="font-serif text-xl mt-2">{text}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section id="products" className="py-20">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                <div className="flex flex-col md:flex-row justify-between items-end gap-6 mb-10">
+                  <div>
+                    <div className="inline-block px-3 py-2 rounded-full bg-white border border-[#4A2E1B]/10 text-[10px] uppercase tracking-[0.2em] text-[#7A5230] font-bold">
+                      Bộ sưu tập
+                    </div>
+                    <h2 className="font-serif text-4xl md:text-5xl mt-4">Bộ sưu tập dừa thủ công</h2>
+                  </div>
+
+                  <div className="flex gap-3">
+                    {adminEmail && (
+                      <button
+                        onClick={() => setEditingProduct({
+                          id: Date.now(),
+                          name: '',
+                          enName: '',
+                          price: 90000,
+                          originalPrice: 120000,
+                          volume: '10g',
+                          packaging: 'Hũ thủy tinh',
+                          tag: 'Mới',
+                          shortDesc: '',
+                          description: '',
+                          ingredients: ['Dầu dừa', 'Dưỡng chất thiên nhiên'],
+                          image: 'https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?auto=format&fit=crop&w=800&q=80'
+                        })}
+                        className="bg-[#4A2E1B] text-[#FFFCF7] px-4 py-2.5 rounded-full text-xs font-bold"
+                      >
+                        + Thêm sản phẩm
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setIsEditMode(!isEditMode)}
+                      className={`px-4 py-2.5 rounded-full text-xs font-bold ${isEditMode ? 'bg-[#7A5230] text-white' : 'bg-white text-[#4A2E1B] border border-[#4A2E1B]/10'}`}
+                    >
+                      {isEditMode ? 'Đang chỉnh giá' : 'Chỉnh giá'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
+                  {products.map(product => (
+                    <div key={product.id} className="group bg-[#FFFCF7] rounded-[28px] overflow-hidden border border-[#4A2E1B]/10 shadow-md">
+                      <div className="relative">
+                        <img src={product.image} alt={product.name} className="w-full h-80 object-cover group-hover:scale-105 transition duration-500" />
+                        <div className="absolute top-4 left-4 bg-[#4A2E1B] text-[#FFFCF7] text-[10px] uppercase px-2.5 py-1 rounded-full">{product.tag}</div>
+                        {adminEmail && (
+                          <div className="absolute top-4 right-4 flex gap-2">
+                            <button onClick={() => setEditingProduct(product)} className="bg-white px-2 py-1 text-[10px] font-bold rounded-md">Sửa</button>
+                            <button onClick={() => deleteProduct(product.id)} className="bg-red-600 text-white px-2 py-1 text-[10px] font-bold rounded-md">Xóa</button>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="p-6">
+                        <div className="flex items-center gap-2 text-xs text-[#7A5230]">
+                          <span>★★★★★</span>
+                          <span>{product.rating}</span>
+                          <span>({product.reviewCount})</span>
+                        </div>
+
+                        <h3 className="font-serif text-3xl mt-3">{product.name}</h3>
+                        <p className="text-xs italic text-[#7A5230]">{product.enName}</p>
+                        <p className="mt-3 text-sm text-[#4A2E1B]/75">{product.shortDesc}</p>
+
+                        <div className="mt-5 flex items-center justify-between">
+                          {isEditMode ? (
+                            <div className="flex-1 flex items-center gap-2">
+                              <input
+                                type="number"
+                                defaultValue={product.price}
+                                onBlur={(e) => {
+                                  const newPrice = Number(e.target.value);
+                                  if (!newPrice || newPrice <= 0) return;
+                                  setProducts(products.map(p => p.id === product.id ? { ...p, price: newPrice } : p));
+                                  setToast(`Đã cập nhật giá sản phẩm "${product.name}"`);
+                                }}
+                                className="w-full border border-[#4A2E1B]/15 rounded-xl px-3 py-2 text-sm"
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <div>
+                                <div className="font-serif text-3xl">{formatCurrency(product.price)}</div>
+                                {product.originalPrice && (
+                                  <div className="text-xs line-through text-[#4A2E1B]/40">{formatCurrency(product.originalPrice)}</div>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+
+                        <div className="mt-6 grid grid-cols-2 gap-3">
+                          <button onClick={() => setSelectedProduct(product)} className="border border-[#4A2E1B]/15 bg-[#F7E6CA]/40 text-[#4A2E1B] px-4 py-3 rounded-xl text-xs font-semibold">Chi tiết</button>
+                          <button onClick={() => addToCart(product)} className="bg-[#4A2E1B] text-[#FFFCF7] px-4 py-3 rounded-xl text-xs font-bold">Thêm giỏ</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="py-20 bg-[#FFFCF7]/50">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                <div className="text-center mb-12">
+                  <div className="inline-block px-3 py-2 rounded-full bg-white border border-[#4A2E1B]/10 text-[10px] uppercase tracking-[0.25em] text-[#7A5230] font-bold">
+                    Cảm nhận khách hàng
+                  </div>
+                  <h2 className="font-serif text-4xl mt-5">Được yêu thích bởi thế hệ trẻ</h2>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  {[
+                    '“Son dưỡng dừa của The ViéCOCO rất thơm, thoa lên môi mịn màng và không gây khô. Mình rất thích thiết kế hũ thủy tinh sang trọng.”',
+                    '“Dùng scrub môi và body dừa, da mình mềm hơn rõ rệt. Mùi rất dịu và không gây kích ứng.”',
+                    '“Mình thấy sản phẩm cực phù hợp cho học sinh sinh viên vì an toàn, thơm tự nhiên và rất đáng yêu.”'
+                  ].map((text, index) => (
+                    <div key={index} className="bg-white border border-[#4A2E1B]/10 rounded-[24px] p-6">
+                      <div className="text-[#7A5230] text-xs mb-3">★★★★★</div>
+                      <p className="text-[#4A2E1B]/80 italic">"{text}"</p>
+                      <div className="mt-6 flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#F7E6CA] flex items-center justify-center font-bold">{String.fromCharCode(65 + index)}</div>
+                        <div>
+                          <div className="font-bold">Khách hàng {index + 1}</div>
+                          <div className="text-xs text-[#7A5230]">12A10</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section id="contact" className="py-20">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                <div className="grid lg:grid-cols-2 gap-10">
+                  <div className="bg-[#FFFCF7] rounded-[32px] border border-[#4A2E1B]/10 p-8">
+                    <div className="text-[10px] uppercase tracking-[0.25em] text-[#7A5230] font-bold">Liên hệ</div>
+                    <h2 className="font-serif text-4xl mt-4">Kết nối với chúng tôi</h2>
+                    <div className="mt-6 space-y-5 text-sm">
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#F7E6CA] flex items-center justify-center">📍</div>
+                        <div><div className="font-bold">Địa điểm</div><div className="text-[#4A2E1B]/75">Lớp 12A10, trường THPT, Bến Tre</div></div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#F7E6CA] flex items-center justify-center">📞</div>
+                        <div><div className="font-bold">Hotline</div><div>0988 234 567</div></div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#F7E6CA] flex items-center justify-center">🥥</div>
+                        <div><div className="font-bold">Mạng xã hội</div><div>@theviecoco.official</div></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#FFFCF7] rounded-[32px] border border-[#4A2E1B]/10 p-8">
+                    <form className="space-y-4">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs uppercase tracking-wider text-[#7A5230] mb-2">Họ tên</label>
+                          <input type="text" className="w-full border border-[#4A2E1B]/15 rounded-xl px-4 py-3 bg-[#F7E6CA]/20" />
+                        </div>
+                        <div>
+                          <label className="block text-xs uppercase tracking-wider text-[#7A5230] mb-2">Số điện thoại</label>
+                          <input type="tel" className="w-full border border-[#4A2E1B]/15 rounded-xl px-4 py-3 bg-[#F7E6CA]/20" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs uppercase tracking-wider text-[#7A5230] mb-2">Email</label>
+                        <input type="email" className="w-full border border-[#4A2E1B]/15 rounded-xl px-4 py-3 bg-[#F7E6CA]/20" />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs uppercase tracking-wider text-[#7A5230] mb-2">Lời nhắn</label>
+                        <textarea rows="5" className="w-full border border-[#4A2E1B]/15 rounded-xl px-4 py-3 bg-[#F7E6CA]/20"></textarea>
+                      </div>
+
+                      <button type="button" className="bg-[#4A2E1B] text-[#FFFCF7] px-6 py-3 rounded-xl font-bold">Gửi tin nhắn</button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </main>
+
+          <footer className="bg-[#4A2E1B] text-[#FFFCF7] py-12 mt-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                <div>
+                  <div className="font-serif text-4xl">The ViéCOCO</div>
+                  <div className="font-signature text-3xl text-[#F7E6CA]">Signature: AURACOCO</div>
+                </div>
+
+                <div className="text-sm text-[#FFFCF7]/80">
+                  Pure Nature - Pure You
+                </div>
+              </div>
+
+              <div className="mt-8 border-t border-white/10 pt-6 text-sm text-[#FFFCF7]/70 flex flex-col md:flex-row justify-between gap-4">
+                <div>© 2026 The ViéCOCO. All rights reserved.</div>
+                <div>Nhóm 1 - Tổ 3 • 12A10</div>
+              </div>
+            </div>
+          </footer>
+
+          {selectedProduct && (
+            <div className="fixed inset-0 z-50 bg-[#4A2E1B]/60 flex items-center justify-center p-4">
+              <div className="bg-[#FFFCF7] rounded-[30px] max-w-3xl w-full p-6 relative">
+                <button onClick={() => setSelectedProduct(null)} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-[#F7E6CA] text-[#4A2E1B] font-bold">✕</button>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-cover rounded-[24px]" />
+                  <div>
+                    <div className="inline-block bg-[#F7E6CA] px-2.5 py-1 rounded-full text-[10px] uppercase font-bold text-[#7A5230]">{selectedProduct.tag}</div>
+                    <h3 className="font-serif text-4xl mt-4">{selectedProduct.name}</h3>
+                    <p className="text-xs italic text-[#7A5230]">{selectedProduct.enName}</p>
+                    <div className="mt-4 font-serif text-3xl">{formatCurrency(selectedProduct.price)}</div>
+                    <p className="mt-4 text-sm text-[#4A2E1B]/80">{selectedProduct.description}</p>
+
+                    <div className="mt-5">
+                      <div className="font-bold text-xs uppercase tracking-wider text-[#7A5230]">Thành phần</div>
+                      <ul className="mt-2 text-sm space-y-1">
+                        {selectedProduct.ingredients.map((item, i) => (
+                          <li key={i}>• {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <button onClick={() => addToCart(selectedProduct)} className="mt-6 w-full bg-[#4A2E1B] text-[#FFFCF7] py-3 rounded-xl font-bold">Thêm vào giỏ hàng</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isCartOpen && (
+            <div className="fixed inset-0 z-50 bg-[#4A2E1B]/60">
+              <div className="absolute right-0 top-0 h-full w-full max-w-md bg-[#FFFCF7] shadow-2xl p-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-serif text-3xl">Giỏ hàng</h3>
+                  <button onClick={() => setIsCartOpen(false)} className="w-10 h-10 rounded-full bg-[#F7E6CA] text-[#4A2E1B] font-bold">✕</button>
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  {cart.length === 0 ? (
+                    <div className="text-center py-10 text-[#4A2E1B]/70">Giỏ hàng trống.</div>
+                  ) : cart.map(item => (
+                    <div key={item.product.id} className="flex gap-4 bg-[#F7E6CA]/30 rounded-2xl p-3">
+                      <img src={item.product.image} alt={item.product.name} className="w-20 h-20 object-cover rounded-xl" />
+                      <div className="flex-1">
+                        <div className="font-bold">{item.product.name}</div>
+                        <div className="text-xs text-[#7A5230]">{formatCurrency(item.product.price)}</div>
+                        <div className="mt-2 flex items-center gap-2">
+                          <button onClick={() => updateQty(item.product.id, item.qty - 1)} className="w-7 h-7 rounded-lg bg-white">-</button>
+                          <span className="text-sm font-bold">{item.qty}</span>
+                          <button onClick={() => updateQty(item.product.id, item.qty + 1)} className="w-7 h-7 rounded-lg bg-white">+</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-8 border-t border-[#4A2E1B]/10 pt-5">
+                  <div className="flex justify-between text-sm">
+                    <span>Tạm tính</span>
+                    <span>{formatCurrency(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-2">
+                    <span>Giảm giá</span>
+                    <span>-{formatCurrency(discount)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-2">
+                    <span>Phí vận chuyển</span>
+                    <span>{shipping === 0 ? 'Miễn phí' : formatCurrency(shipping)}</span>
+                  </div>
+                  <div className="flex justify-between font-bold text-xl mt-4">
+                    <span>Tổng</span>
+                    <span>{formatCurrency(total)}</span>
+                  </div>
+                  <button className="mt-6 w-full bg-[#4A2E1B] text-[#FFFCF7] py-3 rounded-xl font-bold">Tiến hành thanh toán</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isAdminOpen && (
+            <div className="fixed inset-0 z-50 bg-[#4A2E1B]/60 flex items-center justify-center p-4">
+              <div className="bg-[#FFFCF7] w-full max-w-md rounded-[28px] p-6 relative">
+                <button onClick={() => setIsAdminOpen(false)} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-[#F7E6CA]">✕</button>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🔐</div>
+                  <h3 className="font-serif text-3xl">Đăng nhập Admin</h3>
+                </div>
+
+                <form onSubmit={adminLogin} className="mt-6 space-y-4">
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-[#7A5230] mb-2">Email</label>
+                    <input name="email" type="email" className="w-full border border-[#4A2E1B]/15 rounded-xl px-4 py-3 bg-[#F7E6CA]/20" />
+                  </div>
+                  <div>
+                    <label className="block text-xs uppercase tracking-wider text-[#7A5230] mb-2">Mật khẩu</label>
+                    <input name="password" type="password" className="w-full border border-[#4A2E1B]/15 rounded-xl px-4 py-3 bg-[#F7E6CA]/20" />
+                  </div>
+                  <button type="submit" className="w-full bg-[#4A2E1B] text-[#FFFCF7] py-3 rounded-xl font-bold">Xác thực</button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {editingProduct && (
+            <div className="fixed inset-0 z-50 bg-[#4A2E1B]/60 flex items-center justify-center p-4">
+              <div className="bg-[#FFFCF7] rounded-[28px] p-6 w-full max-w-2xl">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-serif text-3xl">{editingProduct.id ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'}</h3>
+                  <button onClick={() => setEditingProduct(null)} className="w-10 h-10 rounded-full bg-[#F7E6CA]">✕</button>
+                </div>
+
+                <div className="mt-6 grid md:grid-cols-2 gap-4">
+                  <input value={editingProduct.name} onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })} placeholder="Tên sản phẩm" className="border rounded-xl px-4 py-3" />
+                  <input value={editingProduct.enName} onChange={(e) => setEditingProduct({ ...editingProduct, enName: e.target.value })} placeholder="Tên tiếng Anh" className="border rounded-xl px-4 py-3" />
+                  <input value={editingProduct.price} onChange={(e) => setEditingProduct({ ...editingProduct, price: Number(e.target.value) })} placeholder="Giá" type="number" className="border rounded-xl px-4 py-3" />
+                  <input value={editingProduct.originalPrice} onChange={(e) => setEditingProduct({ ...editingProduct, originalPrice: Number(e.target.value) })} placeholder="Giá gốc" type="number" className="border rounded-xl px-4 py-3" />
+                  <input value={editingProduct.volume} onChange={(e) => setEditingProduct({ ...editingProduct, volume: e.target.value })} placeholder="Dung tích" className="border rounded-xl px-4 py-3" />
+                  <input value={editingProduct.tag} onChange={(e) => setEditingProduct({ ...editingProduct, tag: e.target.value })} placeholder="Tag" className="border rounded-xl px-4 py-3" />
+                  <input value={editingProduct.image} onChange={(e) => setEditingProduct({ ...editingProduct, image: e.target.value })} placeholder="Link ảnh" className="md:col-span-2 border rounded-xl px-4 py-3" />
+                  <textarea value={editingProduct.shortDesc} onChange={(e) => setEditingProduct({ ...editingProduct, shortDesc: e.target.value })} placeholder="Mô tả ngắn" rows="3" className="md:col-span-2 border rounded-xl px-4 py-3"></textarea>
+                  <textarea value={editingProduct.description} onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })} placeholder="Mô tả chi tiết" rows="4" className="md:col-span-2 border rounded-xl px-4 py-3"></textarea>
+                </div>
+
+                <div className="mt-6 flex justify-end gap-3">
+                  <button onClick={() => setEditingProduct(null)} className="px-5 py-3 rounded-xl border border-[#4A2E1B]/20">Hủy</button>
+                  <button
+                    onClick={() => {
+                      const product = {
+                        ...editingProduct,
+                        ingredients: editingProduct.ingredients || ['Dầu dừa', 'Dưỡng chất thiên nhiên'],
+                        reviewCount: editingProduct.reviewCount || 99,
+                        rating: editingProduct.rating || 4.9
+                      };
+                      saveProduct(product);
+                      setEditingProduct(null);
+                    }}
+                    className="bg-[#4A2E1B] text-[#FFFCF7] px-5 py-3 rounded-xl font-bold"
+                  >
+                    Lưu
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {toast && (
+            <div className="fixed bottom-6 right-6 z-[80] bg-[#4A2E1B] text-[#FFFCF7] rounded-2xl px-4 py-3 shadow-2xl text-sm">
+              {toast}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('app')).render(<App />);
+  </script>
+</body>
+</html>
